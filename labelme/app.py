@@ -30,7 +30,7 @@ from labelme.widgets import ToolBar
 from labelme.widgets import UniqueLabelQListWidget
 from labelme.widgets import ZoomWidget
 
-from labelme.tracker2 import Tracker
+from labelme.trackerre3 import Tracker
 
 here = osp.dirname(osp.abspath(__file__))
 # FIXME
@@ -1933,6 +1933,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_tracker(self):
         if self.tracker_dict:
+            logger.warn("tracker dict exists, not reiniting")
             return
 
         assert not self.image.isNull(), "cannot init tracker with empty image"
@@ -1982,8 +1983,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 track_shapes.append(tshape)
             else:
-                #print("No tracker found")
-                #logger.warning('no tracker found for {}'.format(tid))
+                print("No tracker found")
+                logger.warning('no tracker found for {}'.format(tid))
                 track_shapes.append(shape)
 
         return track_shapes
