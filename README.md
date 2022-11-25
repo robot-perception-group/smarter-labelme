@@ -77,7 +77,7 @@ smart_labelme  # just open gui
 
 ## Acknowledgement
 
-This repo is the fork of [wkentaro/labelme](https://github.com/wkentaro/labelme).
+This repo is the fork of [bhavyaajani/smart-labelme](https://github.com/bhavyaajani/smart-labelme).
 
 
 ## Cite This Project
