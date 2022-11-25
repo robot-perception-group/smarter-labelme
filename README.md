@@ -3,7 +3,7 @@
 </h1>
 
 <h4 align="center">
-  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python
+  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python and Re3
 </h4>
 
 <br/>
@@ -43,6 +43,8 @@ It is written in Python and uses Qt for its graphical interface.
 - Ubuntu / macOS / Windows
 - Python2 / Python3
 - [PyQt4 / PyQt5](http://www.riverbankcomputing.co.uk/software/pyqt/intro) / [PySide2](https://wiki.qt.io/PySide2_GettingStarted)
+- PyTorch
+- Weights from https://drive.google.com/file/d/17vr3iazbcnSS_ZndbgAAz1mCxg9lJy5f/view?usp=sharing
 
 
 ## Installation
