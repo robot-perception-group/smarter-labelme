@@ -345,33 +345,33 @@ class SSD():
 
 #use a single instance of this, saves memory
 SSDMULTIBOX=SSD()
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+RE3MODEL = Re3Net().to(DEVICE)
+RE3PATH="checkpoint.pth"
+if DEVICE.type == "cpu":
+    RE3MODEL.load_state_dict(torch.load(RE3PATH, map_location=lambda storage, loc: storage))
+else:
+    RE3MODEL.load_state_dict(torch.load(RE3PATH))
 
 class Re3Tracker(object):
     def __init__(self, model_path = 'checkpoint.pth'):
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.net = Re3Net().to(self.device)
-        if model_path is not None:
-            if self.device.type == "cpu":
-                self.net.load_state_dict(torch.load(model_path, map_location=lambda storage, loc: storage))
-            else:
-                self.net.load_state_dict(torch.load(model_path))
-        self.net.eval()
+        self.net=RE3MODEL
+        self.device=DEVICE
         self.tracked_data = {}
 
-    def track(self, id, image, bbox = None):
-        image = image.copy()
+    def track(self, id, image, prev_image=None, bbox = None, past_bbox=None):
 
         if bbox is not None:
             # trick - only reinit bounding box, not the whole state
             if id in self.tracked_data:
-                lstm_state, initial_state, past_bbox, prev_image, forward_count = self.tracked_data[id]
+                lstm_state, initial_state, forward_count = self.tracked_data[id]
             else:
                 lstm_state = None
                 forward_count = 0
             prev_image = image
             past_bbox = copy.deepcopy(bbox)
         elif id in self.tracked_data:
-            lstm_state, initial_state, past_bbox, prev_image, forward_count = self.tracked_data[id]
+            lstm_state, initial_state, forward_count = self.tracked_data[id]
         else:
             raise Exception('Id {0} without initial bounding box'.format(id))
 
@@ -389,8 +389,6 @@ class Re3Tracker(object):
             initial_state = lstm_state
             # initial_state = None
             
-        prev_image = image
-
         predicted_bbox = bb_util.from_crop_coordinate_system(network_predicted_bbox.cpu().data.numpy()/10, past_bbox_padded, 1, 1)
 
         # Reset state
@@ -404,7 +402,7 @@ class Re3Tracker(object):
 
         predicted_bbox = predicted_bbox.reshape(4)
 
-        self.tracked_data[id] = (lstm_state, initial_state, predicted_bbox, prev_image, forward_count)
+        self.tracked_data[id] = (lstm_state, initial_state, forward_count)
         
         return predicted_bbox
 
@@ -460,7 +458,7 @@ class Tracker():
             logger.info("rectangles:"+str((srect,rrect)))
             if ((rrect is None) or rrect[0]!=srect[0] or rrect[1]!=srect[1] or rrect[2]!=srect[2] or rrect[3]!=srect[3]):
                 logger.info("re-initializing tracker")
-                _ = self.tracker.track(1,fimg,np.array([srect[0],srect[1],srect[2],srect[3]]))
+                _ = self.tracker.track(1,fimg,bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
             else:
                 logger.info("keeping tracker")
             self.shape=shape
@@ -488,7 +486,7 @@ class Tracker():
 
         mimg = ocvutil.qtImg2CvMat(qimg)
         srect = getRectForTracker(mimg,self.shape)
-        pbox = self.tracker.track(1,mimg)
+        pbox = self.tracker.track(1,mimg,prev_image=self.ref_img,past_bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
         logger.info("tracker reported:"+str(pbox)+" running SSD")
         ssd1box = SSDMULTIBOX.detect(mimg,pbox)
         ssd2box = SSDMULTIBOX.detect(mimg,srect)
