@@ -24,3 +24,4 @@ del sys
 
 from labelme.label_file import LabelFile
 from labelme import utils
+from labelme import re3
