@@ -46,7 +46,8 @@ def get_install_requires():
         'qtpy',
         'termcolor',
         'opencv-contrib-python',
-        'torch'
+        'torch',
+        'torchvision'
     ]
 
     # Find python binding for qt with priority:

@@ -64,7 +64,7 @@ pip install .
 Pytorch will be installed by pip as a dependency by the above command, if it is not already installed, however you will want to select the matching version for your system from https://pytorch.org/get-started/locally/ -- if you do not have a GPU, use
 
 ```
-pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu
+pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
 ```
 
 ## Usage
