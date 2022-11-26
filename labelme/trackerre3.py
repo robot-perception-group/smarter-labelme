@@ -37,7 +37,10 @@ class SSD():
 
     def __init__(self):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = model.SSD300(backbone=model.ResNet("resnet34")).half()
+        self.precision=torch.float16 if torch.cuda.is_available() else torch.float32
+        self.model = model.SSD300(backbone=model.ResNet("resnet34"))
+        self.model = self.model.to(self.precision)
+
         def batchnorm_to_float(module):
             """Converts batch norm to FP32"""
             if isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
@@ -45,12 +48,15 @@ class SSD():
             for child in module.children():
                 batchnorm_to_float(child)
             return module
-        self.model=batchnorm_to_float(self.model)
-        weights=torch.load("ssd.pt")["model"]
+        if self.device.type == "cpu":
+            weights=torch.load("ssd.pt", map_location=lambda storage, loc: storage)["model"]
+        else:
+            self.model=batchnorm_to_float(self.model)
+            weights=torch.load("ssd.pt")["model"]
         self.model.load_state_dict(weights)
         self.model = self.model.to(self.device)
         self.model.eval()
-        self.hardEmpty = torch.empty((0),dtype=torch.half,requires_grad=False).to(self.device)
+        self.hardEmpty = torch.empty((0),dtype=self.precision,requires_grad=False).to(self.device)
         self.hardZero = torch.zeros(1,dtype=torch.long,requires_grad=False).to(self.device)
         self.dboxes = ssdutils.dboxes300_coco()
         self.encoder = ssdutils.Encoder(self.dboxes)
@@ -76,8 +82,8 @@ class SSD():
                 framelabelscores=labels[frame,:,label]
                 frameboxes=loc_decoded[frame]
                 indices=labelmask[frame,:,label].nonzero().flatten() #this is only needed because of buggy pytorch ONNX export, which doesn't like boolean mask access
-                scores = torch.cat((framelabelscores[indices],self.hardZero.half()),0)
-                boxes = torch.cat((frameboxes[indices],self.hardZero.half().view(1,1).expand(1,4)),0)
+                scores = torch.cat((framelabelscores[indices],self.hardZero.to(self.precision)),0)
+                boxes = torch.cat((frameboxes[indices],self.hardZero.to(self.precision).view(1,1).expand(1,4)),0)
 
                 # do non maximum suppression
                 index = scores.argsort(descending=True)[0:200] # only the 200 highest scores per class are kept, speeds things up in a worst case scenario
@@ -104,7 +110,7 @@ class SSD():
         return results
 
     def prepare(self,image,bbox):
-        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).half() * (1.0/127.0) - 1.0
+        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).to(self.precision) * (1.0/127.0) - 1.0
         H=frame.shape[1]
         W=frame.shape[2]
         w=bbox[2]-bbox[0]
@@ -193,12 +199,11 @@ class SSD():
         return(loc_decoded,conf_p)
 
     def findnew(self,image,oldrectangles, min_conf=0.01, nms_iou=0.5):
-        #frame=torch.from_numpy(image).to(self.device).permute(2,0,1).half() * (1.0/127.0) - 1.0
-        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).half() * (1.0/127.0) - 1.0
+        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).to(self.precision) * (1.0/127.0) - 1.0
         frame=torch.cat([frame[2].unsqueeze(0),frame[1].unsqueeze(0),frame[0].unsqueeze(0)],0)
         w=frame.shape[2]
         h=frame.shape[1]
-        exclude=torch.cat((torch.tensor(oldrectangles,dtype=torch.half,device=self.device),self.hardZero.half().view(1,1).expand(1,4)),0)
+        exclude=torch.cat((torch.tensor(oldrectangles,dtype=self.precision,device=self.device),self.hardZero.to(self.precision).view(1,1).expand(1,4)),0)
 
         locs=[]
         confs=[]
@@ -210,7 +215,7 @@ class SSD():
         else:
             xfactor=aspect
             yfactor=1.0
-        bigframe=torch.zeros((3,SSDSIZE*5,SSDSIZE*5),device=self.device,dtype=torch.half)
+        bigframe=torch.zeros((3,SSDSIZE*5,SSDSIZE*5),device=self.device,dtype=self.precision)
         smallframe=self.resizer(frame)  #whole frame to 300x300
         bigframe[:,2*SSDSIZE:3*SSDSIZE,2*SSDSIZE:3*SSDSIZE]=smallframe # insert into here
         for size in [0.9,0.7,0.5]:
@@ -298,8 +303,8 @@ class SSD():
                 framelabelscores=labels[frame,:,label]
                 frameboxes=loc_p[frame]
                 indices=labelmask[frame,:,label].nonzero().flatten() #this is only needed because of buggy pytorch ONNX export, which doesn't like boolean mask access
-                scores = torch.cat((framelabelscores[indices],self.hardZero.half()),0)
-                boxes = torch.cat((frameboxes[indices],self.hardZero.half().view(1,1).expand(1,4)),0)
+                scores = torch.cat((framelabelscores[indices],self.hardZero.to(self.precision)),0)
+                boxes = torch.cat((frameboxes[indices],self.hardZero.to(self.precision).view(1,1).expand(1,4)),0)
 
                 # do non maximum suppression
                 #index = scores.argsort(descending=True)[0:10000] # only the 10000 highest scores per class are kept, speeds things up in a worst case scenario
@@ -317,7 +322,7 @@ class SSD():
                 #PROBLEM: with fp16 some overlapping boxes have the same score - non unique maximum
                 #luckily there are not too manx so we just do this again and keep any random one
                 overlapping = (ssdutils.calc_iou_tensor(boxes,boxes) > nms_iou)
-                rands=torch.randn(scores.view(-1).shape,device=self.device,dtype=torch.half)
+                rands=torch.randn(scores.view(-1).shape,device=self.device,dtype=self.precision)
                 randmatrix = overlapping.float() * rands[:,None]
                 keep = (randmatrix.max(dim=0)[0] == rands).nonzero().view(-1)
                 
