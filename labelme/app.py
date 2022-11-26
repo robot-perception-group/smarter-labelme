@@ -1431,11 +1431,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 flags.update(self.labelFile.flags)
         self.loadFlags(flags)
 
-        if self.tracker_dict and self.noShapes():
-            track_shapes = self.track_shape(prev_shapes)
-            self.loadShapes(track_shapes, replace=False)
-
-            self.setDirty()
+        if self.tracker_dict:
+            otrack_shapes=[]
+            for shape in prev_shapes:
+                if shape.label not in [ a.label for a in self.canvas.shapes ] and shape.label in self.tracker_dict.keys():
+                    otrack_shapes.append(shape)
+            if len(otrack_shapes):
+                track_shapes = self.track_shape(otrack_shapes)
+                self.loadShapes(track_shapes, replace=False)
+                self.setDirty()
+            else:
+                self.setClean()
         else:
             self.setClean()
 
