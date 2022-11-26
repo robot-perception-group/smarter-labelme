@@ -18,7 +18,7 @@ Smart-Labelme is a graphical image annotation tool for various image annotation 
 It support some smart features like annotation tracking, auto contouring etc. to speed up annotation task.
 It is written in Python and uses Qt for its graphical interface.
 
-<i>Auto contouring feature using OpenCV grab cut</i>
+<i>Auto contouring feature using ~OpenCV grab cut~ Re3</i>
 <img src="resources/AutoContour.gif" width="70%" />   
 
 <i>Auto tracking of polygons between frames</i>
@@ -59,6 +59,14 @@ python setup.py build
 pip install .
 ```
 
+### Hint on Pytorch
+
+Pytorch will be installed by pip as a dependency by the above command, if it is not already installed, however you will want to select the matching version for your system from https://pytorch.org/get-started/locally/ -- if you do not have a GPU, use
+
+```
+pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu
+```
+
 ## Usage
 
 Run `smart_labelme --help` for detail.  
@@ -67,6 +75,10 @@ The annotations are saved as a [JSON](http://www.json.org/) file.
 ```bash
 smart_labelme  # just open gui
 ```
+### Important - Get the Re3 weights!
+
+For the Auto-tracking to work, the 300MB weight file (checkpoint.pth) must be located in the current working directory, when smart_labelme is executed.
+Download the weights from [Google Drive](https://drive.google.com/file/d/17vr3iazbcnSS_ZndbgAAz1mCxg9lJy5f/view?usp=sharing) and unzip them in the current folder before running smart_labelme.
 
 ### Command Line Arguments
 - `--output` specifies the location that annotations will be written to. Annotations will be stored in this directory with a name that corresponds to the image that the annotation was made on.
