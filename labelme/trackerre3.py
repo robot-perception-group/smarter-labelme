@@ -103,7 +103,7 @@ class SSD():
 
         return results
 
-    def detect(self,image,bbox):
+    def prepare(self,image,bbox):
         frame=torch.from_numpy(image).to(self.device).permute(2,0,1).half() * (1.0/127.0) - 1.0
         H=frame.shape[1]
         W=frame.shape[2]
@@ -131,6 +131,9 @@ class SSD():
         r[:,1:,1]+=y1
         candidates=r[:,1:,:].view(-1,4).contiguous()
         candidates=torch.cat((candidates,self.hardZero.float().view(1,1).expand(1,4)),0)
+        return candidates
+
+    def detect(self,candidates,bbox):
         bboxtensor=torch.tensor(bbox).to(self.device).view(1,4)
         overlapping = (ssdutils.calc_iou_tensor(bboxtensor,candidates)).view(-1)
         keep=torch.argmax(overlapping)
@@ -488,8 +491,9 @@ class Tracker():
         srect = getRectForTracker(mimg,self.shape)
         pbox = self.tracker.track(1,mimg,prev_image=self.ref_img,past_bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
         logger.info("tracker reported:"+str(pbox)+" running SSD")
-        ssd1box = SSDMULTIBOX.detect(mimg,pbox)
-        ssd2box = SSDMULTIBOX.detect(mimg,srect)
+        prep = SSDMULTIBOX.prepare(mimg,pbox)
+        ssd1box = SSDMULTIBOX.detect(prep,pbox)
+        ssd2box = SSDMULTIBOX.detect(prep,srect)
         if ssd1box is None:
             ssdbox=ssd2box
         elif ssd2box is None:
