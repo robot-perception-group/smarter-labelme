@@ -307,9 +307,11 @@ class SSD():
                 boxes = torch.cat((frameboxes[indices],self.hardZero.to(self.precision).view(1,1).expand(1,4)),0)
 
                 # do non maximum suppression
-                #index = scores.argsort(descending=True)[0:10000] # only the 10000 highest scores per class are kept, speeds things up in a worst case scenario
-                #scores=scores[index].contiguous()
-                #boxes=boxes[index].contiguous()
+                if self.device.type=="cpu":
+                    # likely a laptop, we need to limit memory usage
+                    index = scores.argsort(descending=True)[0:5000] # only the 5000 highest scores per class are kept, speeds things up in a worst case scenario
+                    scores=scores[index].contiguous()
+                    boxes=boxes[index].contiguous()
                 overlapping = (ssdutils.calc_iou_tensor(boxes,boxes) > nms_iou) # 2x2 boolean matrix of all boxes with too high jaccard overlap - each row has at least one True value on diagonal
                 scorematrix = overlapping.float() * scores[:,None]       #this replaces the boolean values with the scores of the column-box
 
