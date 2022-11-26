@@ -46,7 +46,7 @@ class SSD():
                 batchnorm_to_float(child)
             return module
         self.model=batchnorm_to_float(self.model)
-        weights=torch.load("horses.pt")["model"]
+        weights=torch.load("ssd.pt")["model"]
         self.model.load_state_dict(weights)
         self.model = self.model.to(self.device)
         self.model.eval()

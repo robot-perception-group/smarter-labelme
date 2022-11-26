@@ -3,7 +3,7 @@
 </h1>
 
 <h4 align="center">
-  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python and Re3
+  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python and Re3 and SSD Multibox
 </h4>
 
 <br/>
@@ -18,7 +18,7 @@ Smart-Labelme is a graphical image annotation tool for various image annotation 
 It support some smart features like annotation tracking, auto contouring etc. to speed up annotation task.
 It is written in Python and uses Qt for its graphical interface.
 
-<i>Auto contouring feature using ~OpenCV grab cut~ Re3</i>
+<i>Auto contouring feature using ~OpenCV grab cut~ Re3 + SSD Multibox</i>
 <img src="resources/AutoContour.gif" width="70%" />   
 
 <i>Auto tracking of polygons between frames</i>
@@ -79,6 +79,8 @@ smart_labelme  # just open gui
 
 For the Auto-tracking to work, the 300MB weight file (checkpoint.pth) must be located in the current working directory, when smart_labelme is executed.
 Download the weights from [Google Drive](https://drive.google.com/file/d/17vr3iazbcnSS_ZndbgAAz1mCxg9lJy5f/view?usp=sharing) and unzip them in the current folder before running smart_labelme.
+
+The same is true for the SSD Multibox weights. The file is currently called "ssd.pt" and must be in the same folder as checkpoint.pth, the current working directory when smart_labelme is started.
 
 ### Command Line Arguments
 - `--output` specifies the location that annotations will be written to. Annotations will be stored in this directory with a name that corresponds to the image that the annotation was made on.
