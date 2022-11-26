@@ -30,7 +30,7 @@ from labelme.widgets import ToolBar
 from labelme.widgets import UniqueLabelQListWidget
 from labelme.widgets import ZoomWidget
 
-from labelme.trackerre3 import Tracker
+from labelme.trackerre3 import Tracker, trackerAutoAnnotate
 
 here = osp.dirname(osp.abspath(__file__))
 # FIXME
@@ -361,6 +361,11 @@ class MainWindow(QtWidgets.QMainWindow):
             enabled=False,
         )
 
+        autoAnnotate = action(self.tr('AutoAnnotate'), self.autoAnnotate,
+                        shortcuts['autoAnnotate'], 'eye',
+                        self.tr('Automatically annotate all object instances visible'),
+                        enabled=False)
+
         undo = action(self.tr('Undo'), self.undoShapeEdit,
                       shortcuts['undo'], 'undo',
                       self.tr('Undo last add and edit of shape'),
@@ -480,6 +485,7 @@ class MainWindow(QtWidgets.QMainWindow):
             createCircleMode=createCircleMode,
             createLineMode=createLineMode,
             createPointMode=createPointMode, createAutoContourMode=createAutoContourMode,
+            autoAnnotate=autoAnnotate,
             createLineStripMode=createLineStripMode,
             zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
             fitWindow=fitWindow, fitWidth=fitWidth,
@@ -513,6 +519,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 createLineStripMode,
                 editMode,
                 edit,
+                autoAnnotate,
                 #copy,
                 delete,
                 undo,
@@ -530,6 +537,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 createPointMode,
                 createLineStripMode,
                 editMode,
+                autoAnnotate,
             ),
             onShapesPresent=(saveAs, hideAll, showAll),
         )
@@ -617,6 +625,7 @@ class MainWindow(QtWidgets.QMainWindow):
             None,
             createMode,
             createAutoContourMode,
+            autoAnnotate,
             editMode,
             #copy,
             delete,
@@ -774,6 +783,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actions.createLineMode.setEnabled(True)
         self.actions.createPointMode.setEnabled(True)
         self.actions.createLineStripMode.setEnabled(True)
+        self.actions.autoAnnotate.setEnabled(True)
         title = __appname__
         if self.filename is not None:
             title = '{} - {}'.format(title, self.filename)
@@ -1994,3 +2004,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 track_shapes.append(shape)
 
         return track_shapes
+
+    def autoAnnotate(self):
+        track_shapes=trackerAutoAnnotate(self.image,self.canvas.shapes)
+        self.loadShapes(track_shapes, replace=False)

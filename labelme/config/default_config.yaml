@@ -87,6 +87,7 @@ shortcuts:
   - Ctrl+=
   zoom_out: Ctrl+-
   zoom_to_original: Ctrl+0
+  autoAnnotate: null
 show_label_text_field: true
 sort_labels: true
 store_data: false
