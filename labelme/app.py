@@ -1925,7 +1925,7 @@ class MainWindow(QtWidgets.QMainWindow):
                       for fmt in QtGui.QImageReader.supportedImageFormats()]
         images = []
 
-        files = next(os.walk(folderPath))[2] # walk only first level
+        files = sorted(next(os.walk(folderPath))[2]) # walk only first level
 
         for file in files:
             if file.lower().endswith(tuple(extensions)):
