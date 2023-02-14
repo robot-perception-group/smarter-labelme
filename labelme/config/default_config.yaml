@@ -1,6 +1,6 @@
 auto_save: true
 canvas:
-  double_click: close
+  double_click: edit
 default_shape_color: null
 display_label_popup: true
 epsilon: 10.0

@@ -999,9 +999,14 @@ class MainWindow(QtWidgets.QMainWindow):
         shape.flags = flags
         shape.group_id = group_id
         if shape.group_id is None:
-            item.setText(shape.label)
+            text = shape.label
         else:
-            item.setText('{} ({})'.format(shape.label, shape.group_id))
+            text = '{} ({})'.format(shape.label, shape.group_id)
+        if shape.flags is not None:
+            for key in shape.flags:
+                if shape.flags[key]:
+                    text+=" {"+key+"}"
+        item.setText(text)
         self.setDirty()
         if not self.uniqLabelList.findItemsByLabel(shape.label):
             item = QtWidgets.QListWidgetItem()
@@ -1053,6 +1058,10 @@ class MainWindow(QtWidgets.QMainWindow):
             text = shape.label
         else:
             text = '{} ({})'.format(shape.label, shape.group_id)
+        if shape.flags is not None:
+            for key in shape.flags:
+                if shape.flags[key]:
+                    text+=" {"+key+"}"
         label_list_item = LabelListWidgetItem(text, shape)
         self.labelList.addItem(label_list_item)
         if not self.uniqLabelList.findItemsByLabel(shape.label):
