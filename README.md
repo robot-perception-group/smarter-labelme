@@ -53,8 +53,8 @@ Build package using python setup tool.
 Install the package on your system using pip.
 
 ```bash
-git clone https://github.com/bhavyaajani/smart-labelme
-cd smart-labelme
+git clone git@github.com:robot-perception-group/smart-labelme-re3.git
+cd smart-labelme-re3
 python setup.py build
 pip install .
 ```
