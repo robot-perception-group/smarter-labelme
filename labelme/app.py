@@ -2020,3 +2020,5 @@ class MainWindow(QtWidgets.QMainWindow):
     def autoAnnotate(self):
         track_shapes=trackerAutoAnnotate(self.image,self.canvas.shapes)
         self.loadShapes(track_shapes, replace=False)
+        self.setDirty()
+
