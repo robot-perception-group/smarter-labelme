@@ -88,7 +88,7 @@ Smarter-labelme will automatically download pretrained network weights via torch
 
 1. Install Smarter-labelme
 2. If you have a .AVI or .MP4 file, use `ffmpeg` to extract the video. Suggested flags to preserve frame IDs is `ffmpeg -i video.mp4 -q:v 2 -s -f image2 -frame_pts true frames_to_annotate/frame_%05d.jpg`. Please adjust file names and folders to your needs.
-3. Start `smarter_labelme` with appropriate labelflags for your task (see above). e.g. `smarter-labelme --labelflags '{.*: ["sleeping","eating","walking"]}'`
+3. Start `smarter_labelme` with appropriate labelflags for your task (see above). e.g. `smarter_labelme --labelflags '{.*: ["sleeping","eating","walking"]}'`
 4. Open the directory where your extracted the video frames. They will be displayed in order, sorted by filename.
 5. You can try to annotate with the "Auto-annotate" button. Each detected object will receive a label based on detected class and a unique ID.
 6. Fix any misdetections and/or add not detected objects. The shortcut for rectangle annotations is `Ctrl+R`. Press `ESC` to go back to edit mode when you are done.
