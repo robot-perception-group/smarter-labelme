@@ -24,6 +24,10 @@ SSDAUTOTHRESHOLD=0.15
 SSDMINIOU=0.8
 SSDALPHA=0.8
 COCOCLASS=['background','person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+SSDMULTIBOX=None
+DEVICE=None
+RE3MODEL=None
+CONFIG=None
 
 def displayImage(image):
     im2=(image*127+128).to(torch.uint8).cpu()
@@ -36,7 +40,7 @@ def displayImage(image):
 class SSD():
 
     def __init__(self):
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = DEVICE
         self.precision=torch.float32 #16 if torch.cuda.is_available() else torch.float32
         self.model = model.SSD300(backbone=model.ResNet("resnet34"))
         self.model = self.model.to(self.precision)
@@ -48,11 +52,14 @@ class SSD():
             for child in module.children():
                 batchnorm_to_float(child)
             return module
-        if self.device.type == "cpu":
-            weights=torch.load("ssd.pt", map_location=lambda storage, loc: storage)["model"]
+        if CONFIG["ssdmodel"] is None:
+            weights=torch.hub.load_state_dict_from_url('https://keeper.mpdl.mpg.de/f/bd06ac1f6cf84da8b749/?dl=1', map_location=lambda storage, loc: storage, file_name='ssd.pt')['model']
         else:
-            #self.model=batchnorm_to_float(self.model)
-            weights=torch.load("ssd.pt")["model"]
+            weights=torch.load(CONFIG['ssdmodel'], map_location=lambda storage, loc: storage)
+            try:
+                weights=weights['model']
+            except:
+                pass
         self.model.load_state_dict(weights)
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -352,16 +359,22 @@ class SSD():
         return results
 
         
-
-#use a single instance of this, saves memory
-SSDMULTIBOX=SSD()
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-RE3MODEL = Re3Net().to(DEVICE)
-RE3PATH="checkpoint.pth"
-if DEVICE.type == "cpu":
-    RE3MODEL.load_state_dict(torch.load(RE3PATH, map_location=lambda storage, loc: storage))
-else:
-    RE3MODEL.load_state_dict(torch.load(RE3PATH))
+def trackerInit(config):
+    global SSDMULTIBOX,DEVICE,RE3MODEL,CONFIG
+    #use a single instance of this, saves memory
+    CONFIG=config
+    if CONFIG['dnndevice'] is None:
+        DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        DEVICE=torch.device(CONFIG['dnndevice'])
+    SSDMULTIBOX=SSD()
+    RE3MODEL = Re3Net().to(DEVICE)
+    if CONFIG["re3model"] is None:
+        RE3PATH="checkpoint.pth"
+        weights=torch.hub.load_state_dict_from_url('https://keeper.mpdl.mpg.de/f/55db32f79a464c9c8dd2/?dl=1', map_location=lambda storage, loc: storage, file_name=RE3PATH)
+    else:
+        weights=torch.load(CONFIG['re3model'], map_location=lambda storage, loc: storage)
+    RE3MODEL.load_state_dict(weights)
 
 class Re3Tracker(object):
     def __init__(self, model_path = 'checkpoint.pth'):

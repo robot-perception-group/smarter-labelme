@@ -118,6 +118,21 @@ def main():
         help='epsilon to find nearest vertex on canvas',
         default=argparse.SUPPRESS,
     )
+    parser.add_argument(
+        '--ssdmodel',
+        help='Filename for SSD multibox weights',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--re3model',
+        help='Filename for RE3 multibox weights',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--dnndevice',
+        help='Device to run Deep Neural Networks on - cpu or cuda',
+        default=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
 
     if args.version:

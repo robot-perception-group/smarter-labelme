@@ -1,6 +1,6 @@
 auto_save: true
 canvas:
-  double_click: edit
+  double_click: null
 default_shape_color: null
 display_label_popup: true
 epsilon: 10.0
@@ -92,4 +92,7 @@ show_label_text_field: true
 sort_labels: true
 store_data: false
 validate_label: null
-version: 5.0.1
+version: 5.1.0
+ssdmodel: null
+re3model: null
+dnndevice: null

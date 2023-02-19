@@ -30,7 +30,7 @@ from labelme.widgets import ToolBar
 from labelme.widgets import UniqueLabelQListWidget
 from labelme.widgets import ZoomWidget
 
-from labelme.trackerre3 import Tracker, trackerAutoAnnotate
+from labelme.trackerre3 import Tracker, trackerAutoAnnotate, trackerInit
 
 here = osp.dirname(osp.abspath(__file__))
 # FIXME
@@ -71,6 +71,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if config is None:
             config = get_config()
         self._config = config
+
+        # initialize Trackers (load models)
+        trackerInit(self._config)
 
         super(MainWindow, self).__init__()
         self.setWindowTitle(__appname__)
