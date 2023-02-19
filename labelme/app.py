@@ -87,6 +87,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tracker_dict = {}
 
         # Main widgets and related state.
+        if self._config['label_flags'] is None:
+            self._config['label_flags']= {'.*':['disable_visual_tracking']}
+        else:
+            for pattern,keys in self._config['label_flags'].items():
+                if not 'disable_visual_tracking' in keys:
+                    keys.append('disable_visual_tracking')
+
         self.labelDialog = LabelDialog(
             parent=self,
             labels=self._config['labels'],

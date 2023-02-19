@@ -464,7 +464,7 @@ class Tracker():
 
     @property
     def isRunning(self):
-        return (self.ref_img is not None)
+        return (self.shape is not None)
 
 
     def initTracker(self, qimg,shape):
@@ -473,6 +473,9 @@ class Tracker():
             logger.warn("invalid tracker initialisation")
             return status
         else:
+            self.shape=shape
+            if shape.flags['disable_visual_tracking']:
+                return True
             fimg = ocvutil.qtImg2CvMat(qimg)
             srect = getRectForTracker(fimg, shape)
             rrect = None
@@ -484,7 +487,6 @@ class Tracker():
                 _ = self.tracker.track(1,fimg,bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
             else:
                 logger.info("keeping tracker")
-            self.shape=shape
             self.newshape=None
             self.ref_img=fimg.copy()
 
@@ -499,6 +501,8 @@ class Tracker():
         status = False
 
         result = shape
+        if shape.flags['disable_visual_tracking']:
+            return result, True
 
         if not self.isRunning or qimg.isNull():
             if not self.isRunning:

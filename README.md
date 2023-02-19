@@ -82,8 +82,7 @@ Smarter-labelme will automatically download pretrained network weights via torch
 - Without the `--nosortlabels` flag, the program will list labels in alphabetical order. When the program is run with this flag, it will display labels in the order that they are provided.
 - `--labels` allows to limit labels to a determined set, for example MSCOCO. The parameter can be a text file with one label per line or a comma-separated list.
 - `--flags` allows to specify per-image flags. The parameter can be a text file with one label per line or a comma-separated list.
-- `--labelflags` allows to specify per-annotation flags to give additional information beyond the label, for example for behavior annotation. The syntax is JSON with regular expressions, for example `--labelflags {.*: [occluded,running,walking,sleeping]}`. There is one internal labelflag - "notrack" which can be used to disable the automated visual tracker. The label in question will simply be copied to the next frame when tracking is enabled.
-
+- `--labelflags` allows to specify per-annotation flags to give additional information beyond the label, for example for behavior annotation. The syntax is JSON with regular expressions, for example `--labelflags {.*: [occluded,running,walking,sleeping]}`. There is one internal labelflag - "disable_visual_tracking" which can be used to disable the automated visual tracker. Objects with this flag set will simply be copied to the next frame unchanged whenever `Track-Polygon` is engaged.
 
 ## Video annotation procedure with instance tracking.
 
@@ -97,7 +96,7 @@ Smarter-labelme will automatically download pretrained network weights via torch
 8. Enter Edit mode (`ESC`), then select those objects you would like to track across frames. You can do so by clicking the first entry in the `Polygon-Labels` widget and then shift-clicking the last.
 9. Click `Track-Polygon` to engage the tracker for the selected objects.
 10. Switch to the next frame. Smarter-labelme will automatically try to track and follow all selected object instances and add them to the next frame.
-11. Fix all bounding boxes as needed. If the tracker consistently fails or misbehaves for an object, you can edit this object-label (`Ctrl+E`) and select the "notrack" flag.
+11. Fix all bounding boxes as needed. If the tracker consistently fails or misbehaves for an object, you can edit this object-label (`Ctrl+E`) and select the "disable_visual_tracking" flag.
 12. Continue this process for all frames. If new objects appear in the video, add new bounding boxes, then repeat from step 8 on that frame. Objects that disappeared can simply be deleted.
 13. The Annotations will be stored in machine readable JSON files in the `Annotations` subfolder of your input directory.
 
