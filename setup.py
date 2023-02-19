@@ -120,12 +120,12 @@ def main():
         package_data={'labelme': ['icons/*', 'config/*.yaml', 'doc/*']},
         entry_points={
             'console_scripts': [
-                'smart_labelme=labelme.__main__:main',
-                'smart_labelme_draw_json=labelme.cli.draw_json:main',
-                'smart_labelme2mask=labelme.cli.labelme2mask:main',
-                'smart_labelme_draw_label_png=labelme.cli.draw_label_png:main',
-                'smart_labelme_json_to_dataset=labelme.cli.json_to_dataset:main',
-                'smart_labelme_video2frames=labelme.cli.video2frames:main',
+                'smarter_labelme=labelme.__main__:main',
+                'smarter_labelme_draw_json=labelme.cli.draw_json:main',
+                'smarter_labelme2mask=labelme.cli.labelme2mask:main',
+                'smarter_labelme_draw_label_png=labelme.cli.draw_label_png:main',
+                'smarter_labelme_json_to_dataset=labelme.cli.json_to_dataset:main',
+                'smarter_labelme_video2frames=labelme.cli.video2frames:main',
             ],
         },
     )

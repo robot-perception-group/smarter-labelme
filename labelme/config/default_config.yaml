@@ -3,6 +3,7 @@ canvas:
   double_click: null
 default_shape_color: null
 display_label_popup: true
+dnndevice: null
 epsilon: 10.0
 file_dock:
   closable: true
@@ -32,6 +33,7 @@ label_dock:
 label_flags: null
 labels: null
 logger_level: info
+re3model: null
 shape_color: auto
 shape_dock:
   closable: true
@@ -41,6 +43,7 @@ shape_dock:
 shift_auto_shape_color: 0
 shortcuts:
   add_point_to_edge: Ctrl+Shift+P
+  autoAnnotate: null
   close: Ctrl+W
   create_autocontour: Ctrl+A
   create_circle: null
@@ -87,12 +90,9 @@ shortcuts:
   - Ctrl+=
   zoom_out: Ctrl+-
   zoom_to_original: Ctrl+0
-  autoAnnotate: null
 show_label_text_field: true
 sort_labels: true
+ssdmodel: null
 store_data: false
 validate_label: null
 version: 5.1.0
-ssdmodel: null
-re3model: null
-dnndevice: null
