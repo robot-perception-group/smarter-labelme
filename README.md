@@ -1,27 +1,27 @@
 <h1 align="center">
-  <img src="labelme/icons/icon.png"><br/>Smart LabelMe
+  <img src="labelme/icons/icon.png"><br/>Smarter-labelme
 </h1>
 
 <h4 align="center">
-  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python and Re3 and SSD Multibox
+  Video / Image Annotation (Polygon, Semantic mask, Classification) with Python and Re3 and SSD-Multibox
 </h4>
 
 <br/>
 
 <div align="center">
-  <img src="resources/SemanticSegmentation.png" width="70%">
+  <img src="resources/labelme_screenshot.png" width="70%">
 </div>
 
 ## Description
 
-Smart-Labelme is a graphical image annotation tool for various image annotation needs such as classification, semantic segmentation, polygonal rois etc.  
-It support some smart features like annotation tracking, auto contouring etc. to speed up annotation task.
+Smarter-labelme is a graphical image annotation tool for various image annotation needs such as classification, semantic segmentation, polygonal rois etc.  
+It support some smart features like object detection, annotation tracking, auto contouring etc. to speed up the annotation task.
 It is written in Python and uses Qt for its graphical interface.
 
-<i>Auto contouring feature using ~OpenCV grab cut~ Re3 + SSD Multibox</i>
+<i>Auto contouring feature using OpenCV grab cut</i>
 <img src="resources/AutoContour.gif" width="70%" />   
 
-<i>Auto tracking of polygons between frames</i>
+<i>Auto tracking of polygons between frames with Re³ + SSD-Multibox</i>
 <img src="resources/Tracking.gif" width="70%" />   
 
 
@@ -29,13 +29,12 @@ It is written in Python and uses Qt for its graphical interface.
 
 - [x] Image annotation for polygon, rectangle, circle, line and point.
 - [x] Image flag annotation for classification and cleaning.
+- [x] Object-detection for automatic rectangle annotation.
 - [x] Auto-contouring for fast polygon annotation.
 - [x] Auto tracking to track and copy polygon annotations between frames.
 - [x] Scripts for semantic segmentation creation from polygonal annotations.
 - [x] Video annotation. 
 - [x] GUI customization (predefined labels / flags, auto-saving, label validation, etc).
-- [x] Exporting VOC-format dataset for semantic/instance segmentation.
-- [x] Exporting COCO-format dataset for instance segmentation.
 
 
 ## Requirements
@@ -44,7 +43,6 @@ It is written in Python and uses Qt for its graphical interface.
 - Python2 / Python3
 - [PyQt4 / PyQt5](http://www.riverbankcomputing.co.uk/software/pyqt/intro) / [PySide2](https://wiki.qt.io/PySide2_GettingStarted)
 - PyTorch
-- Weights from https://drive.google.com/file/d/17vr3iazbcnSS_ZndbgAAz1mCxg9lJy5f/view?usp=sharing
 
 
 ## Installation
@@ -53,8 +51,8 @@ Build package using python setup tool.
 Install the package on your system using pip.
 
 ```bash
-git clone git@github.com:robot-perception-group/smart-labelme-re3.git
-cd smart-labelme-re3
+git clone https://github.com/robot-perception-group/smarter-labelme.git
+cd smarter-labelme
 python setup.py build
 pip install .
 ```
@@ -69,25 +67,40 @@ pip3 install torch torchvision --extra-index-url https://download.pytorch.org/wh
 
 ## Usage
 
-Run `smart_labelme --help` for detail.  
+Run `smarter_labelme --help` for detail.  
 The annotations are saved as a [JSON](http://www.json.org/) file.
 
 ```bash
-smart_labelme  # just open gui
+smarter_labelme  # just open gui
 ```
-### Important - Get the Re3 weights!
+### Neural Network weights.
 
-For the Auto-tracking to work, the 300MB weight file (checkpoint.pth) must be located in the current working directory, when smart_labelme is executed.
-Download the weights from [Google Drive](https://drive.google.com/file/d/17vr3iazbcnSS_ZndbgAAz1mCxg9lJy5f/view?usp=sharing) and unzip them in the current folder before running smart_labelme.
-
-The same is true for the SSD Multibox weights. The file is currently called "ssd.pt" and must be in the same folder as checkpoint.pth, the current working directory when smart_labelme is started.
+Smarter-labelme will automatically download pretrained network weights via torch.hub on the first start. They will be cashed in your local user directory and use approximately 200 Mb of space. You can use your own weights instead with the --ssdmodel and --re3model flags.
 
 ### Command Line Arguments
 - `--output` specifies the location that annotations will be written to. Annotations will be stored in this directory with a name that corresponds to the image that the annotation was made on.
 - The first time you run labelme, it will create a config file in `~/.labelmerc`. You can edit this file and the changes will be applied the next time that you launch labelme. If you would prefer to use a config file from another location, you can specify this file with the `--config` flag.
 - Without the `--nosortlabels` flag, the program will list labels in alphabetical order. When the program is run with this flag, it will display labels in the order that they are provided.
-- Flags are assigned to an entire image. 
-- Labels are assigned to a single polygon.
+- `--labels` allows to limit labels to a determined set, for example MSCOCO. The parameter can be a text file with one label per line or a comma-separated list.
+- `--flags` allows to specify per-image flags. The parameter can be a text file with one label per line or a comma-separated list.
+- `--labelflags` allows to specify per-annotation flags to give additional information beyond the label, for example for behavior annotation. The syntax is JSON with regular expressions, for example `--labelflags {.*: [occluded,running,walking,sleeping]}`. There is one internal labelflag - "notrack" which can be used to disable the automated visual tracker. The label in question will simply be copied to the next frame when tracking is enabled.
+
+
+## Video annotation procedure with instance tracking.
+
+1. Install smarter-labelme
+2. If you have a .AVI or .MP4 file, use `ffmpeg` to extract the video. Suggested flags to preserve frame IDs is `ffmpeg -i video.mp4 -q:v 2 -s -f image2 -frame_pts true frames_to_annotate/frame_%05d.jpg`. Please adjust file names and folders to your needs.
+3. Open smarter-labelme with appropriate labelflags for your task (see above). e.g. `smarter-labelme --labelflags '{.*: ["sleeping","eating","walking"]}'`
+4. Open the directory where your extracted the video frames. They will be displayed in order, sorted by filename.
+5. You can try to annotate with the "Auto-annotate" button. Each detected object will receive a label based on detected class and a unique ID.
+6. Fix any misdetections and/or add not detected objects. The shortcut for rectangle annotations is `Ctrl+R`. Press `ESC` to go back to edit mode when you are done.
+7. All objects should have unique labels. This is easiest achieved if giving the type of object, followed by a unique number.
+8. Enter Edit mode (`ESC`), then select those objects you would like to track across frames. You can do so by clicking the first entry in the `Polygon-Labels` widget and then shift-clicking the last.
+9. Click `Track-Polygon` to engage the tracker for the selected objects.
+10. Switch to the next frame. Smarter-labelme will automatically try to track and follow all selected object instances and add them to the next frame.
+11. Fix all bounding boxes as needed. If the tracker consistently fails or misbehaves for an object, you can edit this object-label (`Ctrl+E`) and select the "notrack" flag.
+12. Continue this process for all frames. If new objects appear in the video, add new bounding boxes, then repeat from step 8 on that frame. Objects that disappeared can simply be deleted.
+13. The Annotations will be stored in machine readable JSON files in the `Annotations` subfolder of your input directory.
 
 ## Acknowledgement
 
@@ -98,6 +111,14 @@ This repo is the fork of [bhavyaajani/smart-labelme](https://github.com/bhavyaaj
 
 If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entry.
 
+```bash
+@misc{smarter-labelme2023,
+  author =       {Eric Price},
+  title =        {{Smarter-labelme: }},
+  howpublished = {\url{https://github.com/robot-perception-group/smarter-labelme}},
+  year =         {2023}
+}
+```
 ```bash
 @misc{smart-labelme2020,
   author =       {Bhavya Ajani},

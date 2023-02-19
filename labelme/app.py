@@ -383,8 +383,8 @@ class MainWindow(QtWidgets.QMainWindow):
                          icon='eye', tip=self.tr('Show all polygons'),
                          enabled=False)
 
-        help = action(self.tr('&Tutorial'), self.tutorial, icon='help',
-                      tip=self.tr('Show tutorial page'))
+        #help = action(self.tr('&Tutorial'), self.tutorial, icon='help',
+        #              tip=self.tr('Show tutorial page'))
 
         zoom = QtWidgets.QWidgetAction(self)
         zoom.setDefaultWidget(self.zoomWidget)
@@ -552,7 +552,7 @@ class MainWindow(QtWidgets.QMainWindow):
             file=self.menu(self.tr('&File')),
             edit=self.menu(self.tr('&Edit')),
             view=self.menu(self.tr('&View')),
-            help=self.menu(self.tr('&Help')),
+            #help=self.menu(self.tr('&Help')),
             recentFiles=QtWidgets.QMenu(self.tr('Open &Recent')),
             labelList=labelMenu,
         )
@@ -577,7 +577,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 quit,
             ),
         )
-        utils.addActions(self.menus.help, (help,))
+        #utils.addActions(self.menus.help, (help,))
         utils.addActions(
             self.menus.view,
             (
@@ -620,17 +620,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actions.tool = (
             #open_,
             opendir,
-            openseg,
+            #openseg,
             openNextImg,
             openPrevImg,
-            save,
-            deleteFile,
+            #save,
+            #deleteFile,
             None,
-            createMode,
-            createAutoContourMode,
+            createRectangleMode,
+            #createAutoContourMode,
             autoAnnotate,
             editMode,
-            #copy,
+            copy,
             delete,
             undo,
             None,
@@ -850,11 +850,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loadShapes(self.canvas.shapes)
         self.actions.undo.setEnabled(self.canvas.isShapeRestorable)
 
-    def tutorial(self):
+    #def tutorial(self):
         #url = 'https://github.com/wkentaro/labelme/tree/master/examples/tutorial'  # NOQA
         #webbrowser.open(url)
-        help_file = osp.join(here, 'doc/LabelMe.pdf')
-        os.startfile(help_file)
+        #help_file = osp.join(here, 'doc/LabelMe.pdf')
+        #os.startfile(help_file)
 
     def toggleDrawingSensitive(self, drawing=True):
         """Toggle drawing sensitive.

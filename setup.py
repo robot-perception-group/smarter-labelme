@@ -93,15 +93,15 @@ def main():
     update_config_for_version()
 
     setup(
-        name='smart-labelme-re3',
+        name='smarter-labelme',
         version=version,
         packages=find_packages(exclude=['github2pypi']),
-        description='Smart Image Annotation with Python and Re3',
-        long_description="Refer to https://github.com/robot-perception-group/smart-labelme-re3 for usage.",
+        description='Smarter Image Annotation with Python and Re3',
+        long_description="Refer to https://github.com/robot-perception-group/smarter-labelme for usage.",
         long_description_content_type='text/markdown',
         author='Eric Price',
         author_email='eric.price@tuebingen.mpg.de',
-        url='https://github.com/bhavyaajani/smart-labelme-re3',
+        url='https://github.com/robot-perception-group/smarter-labelme',
         install_requires=get_install_requires(),
         license='GPLv3',
         keywords='Image Annotation, Machine Learning',
