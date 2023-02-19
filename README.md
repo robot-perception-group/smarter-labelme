@@ -18,12 +18,11 @@ Smarter-labelme is a graphical image annotation tool for various image annotatio
 It support some smart features like object detection, annotation tracking, auto contouring etc. to speed up the annotation task.
 It is written in Python and uses Qt for its graphical interface.
 
-<i>Auto contouring feature using OpenCV grab cut</i>
-<img src="resources/AutoContour.gif" width="70%" />   
-
 <i>Auto tracking of polygons between frames with Re³ + SSD-Multibox</i>
 <img src="resources/Tracking.gif" width="70%" />   
 
+<i>Auto contouring feature using OpenCV grab cut</i>
+<img src="resources/AutoContour.gif" width="70%" />   
 
 ## Features
 
