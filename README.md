@@ -35,6 +35,7 @@ It is written in Python and uses Qt for its graphical interface.
 - [x] Video annotation. 
 - [x] GUI customization (predefined labels / flags, auto-saving, label validation, etc).
 
+A [Preprint outlining the methods](https://arxiv.org/abs/2302.09590) has been uploaded to [arXiv.org](https://arxiv.org/abs/2302.09590)
 
 ## Requirements
 
@@ -107,8 +108,19 @@ This repo is the fork of [bhavyaajani/smart-labelme](https://github.com/bhavyaaj
 
 ## Cite This Project
 
-If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entry.
+If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entries.
 
+```bash
+@misc{price2023accelerated,
+      title={Accelerated Video Annotation driven by Deep Detector and Tracker}, 
+      author={Eric Price and Aamir Ahmad},
+      year={2023},
+      eprint={2302.09590},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url = {https://arxiv.org/abs/2302.09590},
+}
+```
 ```bash
 @misc{smarter-labelme2023,
   author =       {Eric Price},
