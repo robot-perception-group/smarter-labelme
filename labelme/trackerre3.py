@@ -474,8 +474,11 @@ class Tracker():
             return status
         else:
             self.shape=shape
-            if shape.flags['disable_visual_tracking']:
-                return True
+            try:
+               if shape.flags['disable_visual_tracking']:
+                   return True
+            except:
+                pass
             fimg = ocvutil.qtImg2CvMat(qimg)
             srect = getRectForTracker(fimg, shape)
             rrect = None
@@ -501,8 +504,11 @@ class Tracker():
         status = False
 
         result = shape
-        if shape.flags['disable_visual_tracking']:
-            return result, True
+        try:
+            if shape.flags['disable_visual_tracking']:
+                return result, True
+        except:
+            pass
 
         if not self.isRunning or qimg.isNull():
             if not self.isRunning:
