@@ -883,8 +883,11 @@ class Canvas(QtWidgets.QWidget):
         self.hEdge = None
         self.repaint()
 
-    def setShapeVisible(self, shape, value):
+    def setShapeVisibleDelayed(self, shape, value):
         self.visible[shape] = value
+
+    def setShapeVisible(self, shape, value):
+        self.setShapeVisibleDelayed(shape,value)
         self.repaint()
 
     def overrideCursor(self, cursor):

@@ -50,6 +50,7 @@ LABEL_COLORMAP = imgviz.label_colormap(value=200)
 class MainWindow(QtWidgets.QMainWindow):
 
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = 0, 1, 2
+    delayedDraw=False,
 
     def __init__(
         self,
@@ -1118,11 +1119,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.labelList.removeItem(item)
 
     def loadShapes(self, shapes, replace=True):
+        self.delayedDraw=True # prevent redrawing canvas 5 times for every single label added to the labellist
         self._noSelectionSlot = True
         for shape in shapes:
             self.addLabel(shape)
         self.labelList.clearSelection()
         self._noSelectionSlot = False
+        self.delayedDraw=False
         self.canvas.loadShapes(shapes, replace=replace)
 
     def loadLabels(self, shapes):
@@ -1241,7 +1244,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def labelItemChanged(self, item):
         shape = item.shape()
-        self.canvas.setShapeVisible(shape, item.checkState() == Qt.Checked)
+        if (self.delayedDraw):
+            self.canvas.setShapeVisibleDelayed(shape, item.checkState() == Qt.Checked)
+        else:
+            self.canvas.setShapeVisible(shape, item.checkState() == Qt.Checked)
 
     def labelOrderChanged(self):
         self.setDirty()
