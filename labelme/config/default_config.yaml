@@ -22,7 +22,7 @@ flag_dock:
 flags: null
 image_skip: 15
 keep_prev: false
-keep_prev_scale: false
+keep_prev_scale: true
 label_colors: null
 label_completion: startswith
 label_dock:

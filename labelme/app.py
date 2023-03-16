@@ -1483,7 +1483,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.setEnabled(True)
         # set zoom values
         is_initial_load = not self.zoom_values
-        if self.filename in self.zoom_values:
+        if (self.filename in self.zoom_values) and not self._config['keep_prev_scale']:
             self.zoomMode = self.zoom_values[self.filename][0]
             self.setZoom(self.zoom_values[self.filename][1])
         elif is_initial_load or not self._config['keep_prev_scale']:
