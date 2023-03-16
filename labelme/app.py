@@ -145,6 +145,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileSearch.setPlaceholderText(self.tr('Search Filename'))
         self.fileSearch.textChanged.connect(self.fileSearchChanged)
         self.fileListWidget = QtWidgets.QListWidget()
+        self.fileListWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.fileListWidget.itemSelectionChanged.connect(
             self.fileSelectionChanged
         )
@@ -1006,23 +1007,57 @@ class MainWindow(QtWidgets.QMainWindow):
                 ).format(text, self._config['validate_label'])
             )
             return
+        oldtext = shape.label
         shape.label = text
         shape.flags = flags
         shape.group_id = group_id
         if shape.group_id is None:
-            text = shape.label
+            ntext = shape.label
         else:
-            text = '{} ({})'.format(shape.label, shape.group_id)
+            ntext = '{} ({})'.format(shape.label, shape.group_id)
         if shape.flags is not None:
             for key in shape.flags:
                 if shape.flags[key]:
-                    text+=" {"+key+"}"
-        item.setText(text)
-        self.setDirty()
+                    ntext+=" {"+key+"}"
         if not self.uniqLabelList.findItemsByLabel(shape.label):
-            item = QtWidgets.QListWidgetItem()
-            item.setData(role=Qt.UserRole, value=shape.label)
-            self.uniqLabelList.addItem(item)
+            uitem = self.uniqLabelList.createItemFromLabel(shape.label)
+            self.uniqLabelList.addItem(uitem)
+            rgb = self._get_rgb_by_label(shape.label)
+            self.uniqLabelList.setItemLabel(uitem, shape.label, rgb)
+        rgb = self._get_rgb_by_label(shape.label)
+        if rgb is None:
+            rgb=(0,0,0)
+        r, g, b = rgb
+        item.setText(
+            '{} <font color="#{:02x}{:02x}{:02x}">●</font>'
+            .format(ntext, r, g, b)
+        )
+        shape.line_color = QtGui.QColor(r, g, b)
+        shape.vertex_fill_color = QtGui.QColor(r, g, b)
+        shape.hvertex_fill_color = QtGui.QColor(255, 255, 255)
+        shape.fill_color = QtGui.QColor(r, g, b, 128)
+        shape.select_line_color = QtGui.QColor(255, 255, 255)
+        shape.select_fill_color = QtGui.QColor(r, g, b, 155)
+        self.setDirty()
+        selectedFiles = self.fileListWidget.selectedItems();
+        if len(selectedFiles)>1:
+            #more than one file is selected, we also need to change the label in all other files, if it exists
+            oldfilename=self.filename
+            for fileitem in selectedFiles[1:]:
+                currIndex = self.imageList.index(str(fileitem.text()))
+                if currIndex < len(self.imageList):
+                    filename = self.imageList[currIndex]
+                    if filename:
+                        self.loadFile(filename,reset=False)
+                        for clabel in self.labelList:
+                            cshape=clabel.shape()
+                            if cshape.label == oldtext:
+                                #change this label in the other file
+                                cshape.label=text
+                                cshape.flags = flags
+                                cshape.group_id = group_id
+                                self.setDirty()
+            self.loadFile(oldfilename,reset=False)
 
     def fileSearchChanged(self):
         self.importDirImages(
@@ -1044,7 +1079,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if currIndex < len(self.imageList):
             filename = self.imageList[currIndex]
             if filename:
-                self.loadFile(filename)
+                self.loadFile(filename,reset=False)
 
     # React to canvas signals.
     def shapeSelectionChanged(self, selected_shapes):
@@ -1352,12 +1387,12 @@ class MainWindow(QtWidgets.QMainWindow):
         for item in self.labelList:
             item.setCheckState(Qt.Checked if value else Qt.Unchecked)
 
-    def loadFile(self, filename=None):
+    def loadFile(self, filename=None, reset=True):
         """Load the specified file, or the last opened file if None."""
         # changing fileListWidget loads file
         if (filename in self.imageList and
                 self.fileListWidget.currentRow() !=
-                self.imageList.index(filename)):
+                self.imageList.index(filename) and reset==True):
             self.fileListWidget.setCurrentRow(self.imageList.index(filename))
             self.fileListWidget.repaint()
             return
