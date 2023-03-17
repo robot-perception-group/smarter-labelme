@@ -122,6 +122,7 @@ def main():
             'console_scripts': [
                 'smarter_labelme=labelme.__main__:main',
                 'smarter_labelme_draw_json=labelme.cli.draw_json:main',
+                'smarter_labelme_draw_overlay=labelme.cli.draw_overlay:main',
                 'smarter_labelme2mask=labelme.cli.labelme2mask:main',
                 'smarter_labelme_draw_label_png=labelme.cli.draw_label_png:main',
                 'smarter_labelme_json_to_dataset=labelme.cli.json_to_dataset:main',
