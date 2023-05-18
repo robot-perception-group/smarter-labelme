@@ -1525,7 +1525,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.adjustScale(initial=True)
         # set scroll values
         for orientation in self.scroll_values:
-            if self.filename in self.scroll_values[orientation]:
+            if self.filename in self.scroll_values[orientation] and not self._config['keep_prev_scale']:
                 self.setScroll(
                     orientation, self.scroll_values[orientation][self.filename]
                 )
