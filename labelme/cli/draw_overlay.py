@@ -27,13 +27,12 @@ def main():
 
     if data['imageData']:
         imageData = data['imageData']
+        img = utils.img_b64_to_arr(imageData)
     else:
         imagePath = os.path.join(os.path.dirname(json_file), data['imagePath'])
         with open(imagePath, 'rb') as f:
             imageData = f.read()
-            imageData = base64.b64encode(imageData).decode('utf-8')
-    img = utils.img_b64_to_arr(imageData)
-
+            img = utils.img_data_to_arr(imageData)
     label_name_to_value = {'': 0}
     label_texts={0:''}
     for shape in sorted(data['shapes'], key=lambda x: x['label']):
