@@ -46,15 +46,10 @@ A [Preprint outlining the methods](https://arxiv.org/abs/2302.09590) has been up
 
 
 ## Installation
-Download the source code onto your local system.
-Build package using python setup tool.
-Install the package on your system using pip.
+You can install via pip:
 
 ```bash
-git clone https://github.com/robot-perception-group/smarter-labelme.git
-cd smarter-labelme
-python setup.py build
-pip install .
+python3 -m pip install --upgrade "git+https://github.com/robot-perception-group/smarter-labelme@master"
 ```
 
 ### Hint on Pytorch
@@ -88,8 +83,8 @@ Smarter-labelme will automatically download pretrained network weights via torch
 ## Video annotation procedure with instance tracking.
 
 1. Install Smarter-labelme
-2. If you have a .AVI or .MP4 file, use `ffmpeg` to extract the video. Suggested flags to preserve frame IDs is `ffmpeg -i video.mp4 -q:v 2 -f image2 -frame_pts true frames_to_annotate/frame_%05d.jpg`. Please adjust file names and folders to your needs.
-3. Start `smarter_labelme` with appropriate labelflags for your task (see above). e.g. `smarter_labelme --labelflags '{.*: ["sleeping","eating","walking"]}'`
+2. If you have a .AVI or .MP4 file, use `ffmpeg` to extract the video. Smarter-labelme provides a wrapper to preserve frame IDs `smarter_labelme_video2frames <video> <output_folder> [--fps [fps]|"full"]`. The default fps is 8, specify "full" to extract all frames from the video.
+3. Start `smarter_labelme` with appropriate labelflags for your task (see above). e.g. `smarter_labelme --labelflags '{.*: ["grazing","standing","walking","running"]}'`
 4. Open the directory where your extracted the video frames. They will be displayed in order, sorted by filename.
 5. You can try to annotate with the "Auto-annotate" button. Each detected object will receive a label based on detected class and a unique ID.
 6. Fix any misdetections and/or add not detected objects. The shortcut for rectangle annotations is `Ctrl+R`. Press `ESC` to go back to edit mode when you are done.

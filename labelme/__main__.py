@@ -124,6 +124,11 @@ def main():
         default=argparse.SUPPRESS,
     )
     parser.add_argument(
+        '--ssd-min-resolution',
+        help='Minimum resolution at which to auto annotate. Smaller values result in more memory usage and longer runtime but detect smaller objects. Default: 300',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         '--re3model',
         help='Filename for RE3 multibox weights',
         default=argparse.SUPPRESS,

@@ -11,12 +11,14 @@ import labelme.re3.bb_util as bb_util
 import labelme.re3.im_util as im_util
 import labelme.utils.ssdutils as ssdutils
 import labelme.utils.ssdmodel as model
+
 import random
 from qtpy import QtCore
 
 MAX_TRACK_LENGTH = 16
 CROP_SIZE = 227
 CROP_PAD = 2
+TRACKSIZE=100
 SSDSIZE=300
 SSDCROPFACTOR=3.0
 SSDTHRESHOLD=0.05
@@ -28,9 +30,13 @@ SSDMULTIBOX=None
 DEVICE=None
 RE3MODEL=None
 CONFIG=None
+REFIMAGE=None
+CURIMAGE=None
+TRANSROTATION=None
 
 def displayImage(image):
-    im2=(image*127+128).to(torch.uint8).cpu()
+    #im2=(image*127+128).to(torch.uint8).cpu()
+    im2=image.cpu()#*127+128).to(torch.uint8).cpu()
     if len(image.shape)==4:
         im2=im2.squeeze(0)
     t=torchvision.transforms.ToPILImage()
@@ -67,7 +73,7 @@ class SSD():
         self.hardZero = torch.zeros(1,dtype=torch.long,requires_grad=False).to(self.device)
         self.dboxes = ssdutils.dboxes300_coco()
         self.encoder = ssdutils.Encoder(self.dboxes)
-        self.resizer = torchvision.transforms.Resize((SSDSIZE,SSDSIZE),interpolation=torchvision.transforms.InterpolationMode.BICUBIC).to(self.device)
+        self.resizer = torchvision.transforms.Resize((SSDSIZE,SSDSIZE),antialias=True,interpolation=torchvision.transforms.InterpolationMode.BICUBIC).to(self.device)
 
 
     def inference(self,prediction, min_conf=0.01, nms_iou=0.5):
@@ -117,7 +123,8 @@ class SSD():
         return results
 
     def prepare(self,image,bbox):
-        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).to(self.precision) * (1.0/127.0) - 1.0
+        frame=torch.from_numpy(image).to(self.device).permute(2,0,1)
+        frame=frame.to(self.precision)[[2,1,0],:,:] * (1.0/127.0) - 1.0
         H=frame.shape[1]
         W=frame.shape[2]
         w=bbox[2]-bbox[0]
@@ -185,7 +192,7 @@ class SSD():
         else:
             tres=int(image.shape[2]*0.95)
         # keep reducing 50% - might be skipped for small images
-        while tres>(600):
+        while tres>(float(CONFIG['ssd_min_resolution'])*2.0):
             tiles=tiles+self.tile(image,tres)
             tres=int(tres*0.5)
         # tile at actual network resolution too
@@ -206,8 +213,7 @@ class SSD():
         return(loc_decoded,conf_p)
 
     def findnew(self,image,oldrectangles, min_conf=0.01, nms_iou=0.5):
-        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).to(self.precision) * (1.0/127.0) - 1.0
-        frame=torch.cat([frame[2].unsqueeze(0),frame[1].unsqueeze(0),frame[0].unsqueeze(0)],0)
+        frame=torch.from_numpy(image).to(self.device).permute(2,0,1).to(self.precision)[[2,1,0],:,:] * (1.0/127.0) - 1.0
         w=frame.shape[2]
         h=frame.shape[1]
         exclude=torch.cat((torch.tensor(oldrectangles,dtype=self.precision,device=self.device),self.hardZero.to(self.precision).view(1,1).expand(1,4)),0)
@@ -369,12 +375,14 @@ def trackerInit(config):
         DEVICE=torch.device(CONFIG['dnndevice'])
     SSDMULTIBOX=SSD()
     RE3MODEL = Re3Net().to(DEVICE)
+    RE3MODEL.eval()
     if CONFIG["re3model"] is None:
         RE3PATH="checkpoint.pth"
         weights=torch.hub.load_state_dict_from_url('https://keeper.mpdl.mpg.de/f/55db32f79a464c9c8dd2/?dl=1', map_location=lambda storage, loc: storage, file_name=RE3PATH)
     else:
         weights=torch.load(CONFIG['re3model'], map_location=lambda storage, loc: storage)
     RE3MODEL.load_state_dict(weights)
+
 
 class Re3Tracker(object):
     def __init__(self, model_path = 'checkpoint.pth'):
@@ -398,11 +406,23 @@ class Re3Tracker(object):
         else:
             raise Exception('Id {0} without initial bounding box'.format(id))
 
+        if (bbox is not None) or (TRANSROTATION is None):
+            corrected_bbox=past_bbox
+        else:
+            corrected_bbox=past_bbox.reshape(2,2).astype(float)
+            corrected_bbox=TRACKSIZE*(corrected_bbox-TRANSROTATION[1])/TRANSROTATION[2]
+            corrected_bbox=np.concatenate((corrected_bbox,np.array([[1.],[1.]])),axis=1)
+            corrected_bbox=np.concatenate([ [np.dot(TRANSROTATION[0],point)] for point in corrected_bbox])
+
+
+            corrected_bbox=(corrected_bbox[:,[[0,1]]]*TRANSROTATION[2]/TRACKSIZE)+TRANSROTATION[1]
+            corrected_bbox=corrected_bbox.reshape(4).astype(int)
+
         cropped_input0, past_bbox_padded = im_util.get_cropped_input(prev_image, past_bbox, CROP_PAD, CROP_SIZE)
-        cropped_input1, _ = im_util.get_cropped_input(image, past_bbox, CROP_PAD, CROP_SIZE)
+        cropped_input1, new_bbox_padded = im_util.get_cropped_input(image, corrected_bbox, CROP_PAD, CROP_SIZE)
 
         network_input = np.stack((cropped_input0.transpose(2,0,1),cropped_input1.transpose(2,0,1)))
-        network_input = torch.tensor(network_input, dtype = torch.float).contiguous()
+        network_input = torch.tensor(network_input, dtype = torch.float)[:,[2,0,1],:,:].contiguous()
         
         with torch.no_grad():
             network_input = network_input.to(self.device)
@@ -412,7 +432,7 @@ class Re3Tracker(object):
             initial_state = lstm_state
             # initial_state = None
             
-        predicted_bbox = bb_util.from_crop_coordinate_system(network_predicted_bbox.cpu().data.numpy()/10, past_bbox_padded, 1, 1)
+        predicted_bbox = bb_util.from_crop_coordinate_system(network_predicted_bbox.cpu().data.numpy()/10, new_bbox_padded, 1, 1)
 
         # Reset state
         if forward_count > 0 and forward_count % MAX_TRACK_LENGTH == 0:
@@ -458,7 +478,6 @@ class Tracker():
 
     def __init__(self, *args, **kwargs):
         self.tracker=Re3Tracker()
-        self.ref_img = None
         self.shape = None
         self.newshape = None
 
@@ -467,9 +486,9 @@ class Tracker():
         return (self.shape is not None)
 
 
-    def initTracker(self, qimg,shape):
+    def initTracker(self, shape):
         status = False
-        if qimg.isNull() or not shape:
+        if REFIMAGE is None or not shape:
             logger.warn("invalid tracker initialisation")
             return status
         else:
@@ -479,7 +498,7 @@ class Tracker():
                    return True
             except:
                 pass
-            fimg = ocvutil.qtImg2CvMat(qimg)
+            fimg = REFIMAGE
             srect = getRectForTracker(fimg, shape)
             rrect = None
             if (self.newshape is not None):
@@ -491,13 +510,12 @@ class Tracker():
             else:
                 logger.info("keeping tracker")
             self.newshape=None
-            self.ref_img=fimg.copy()
 
             status = True
 
         return status
 
-    def updateTracker(self, qimg, shape):
+    def updateTracker(self, shape):
 
         assert (shape and shape.label == self.shape.label),"Invalid tracker state!"
 
@@ -510,16 +528,16 @@ class Tracker():
         except:
             pass
 
-        if not self.isRunning or qimg.isNull():
+        if not self.isRunning or CURIMAGE is None:
             if not self.isRunning:
                 logger.warning("tracker is not running")
             else:
                 logger.warning("no image")
             return result, status
 
-        mimg = ocvutil.qtImg2CvMat(qimg)
+        mimg = CURIMAGE
         srect = getRectForTracker(mimg,self.shape)
-        pbox = self.tracker.track(1,mimg,prev_image=self.ref_img,past_bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
+        pbox = self.tracker.track(1,mimg,prev_image=REFIMAGE,past_bbox=np.array([srect[0],srect[1],srect[2],srect[3]]))
         logger.info("tracker reported:"+str(pbox)+" running SSD")
         prep = SSDMULTIBOX.prepare(mimg,pbox)
         ssd1box = SSDMULTIBOX.detect(prep,pbox)
@@ -565,12 +583,52 @@ class Tracker():
         return result , status
 
     def __reset__(self):
-        self.ref_img = None
         self.shape = None
         self.tracker = None
 
     def stopTracker(self):
         self.__reset__()
+
+def crop(image,dimensions):
+    x,y,w,h=dimensions
+    if w>h:
+        cw=int(w/2)
+    else:
+        cw=int(h/2)
+    l=(x-int(w/2))+cw
+    r=l+w
+    t=(y-int(h/2))+cw
+    b=t+h
+    p=torchvision.transforms.Pad(cw,padding_mode='reflect')
+    pimage=p(image)
+    return pimage[:,t:b,l:r]
+
+def scale(image,dimensions):
+    w,h=dimensions
+    t=torchvision.transforms.Resize((h,w),torchvision.transforms.InterpolationMode.BILINEAR,antialias=True)
+    return t(image)
+
+def trackerFindGlobalOffset(aqimg,qimg):
+    global REFIMAGE,CURIMAGE,TRANSROTATION
+    REFIMAGE = ocvutil.qtImg2CvMat(aqimg)
+    CURIMAGE = ocvutil.qtImg2CvMat(qimg)
+
+    w=REFIMAGE.shape[1]
+    h=REFIMAGE.shape[0]
+    size=min(h,w)
+    center=(np.array([w,h],dtype=int)//2)
+    lt=center-(size//2)
+    frame0r = cv2.cvtColor(cv2.resize(REFIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (TRACKSIZE,TRACKSIZE)),cv2.COLOR_BGR2GRAY)
+    frame1r = cv2.cvtColor(cv2.resize(CURIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (TRACKSIZE,TRACKSIZE)),cv2.COLOR_BGR2GRAY)
+    warp_matrix = np.eye(2, 3, dtype=np.float32)
+    TRANSROTATION=None
+
+    try:
+        (_, T) = cv2.findTransformECC (frame0r,frame1r,warp_matrix,cv2.MOTION_AFFINE, \
+                (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 1000,1e-10), None, 1)
+        TRANSROTATION=(T,lt,size)
+    except:
+        TRANSROTATION=None
 
 
 def trackerAutoAnnotate(qimg,shapes):

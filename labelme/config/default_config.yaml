@@ -92,7 +92,8 @@ shortcuts:
   zoom_to_original: Ctrl+0
 show_label_text_field: true
 sort_labels: true
+ssd_min_resolution: 300
 ssdmodel: null
 store_data: false
 validate_label: null
-version: 5.1.1
+version: 5.2.1

@@ -127,6 +127,7 @@ def main():
                 'smarter_labelme_draw_label_png=labelme.cli.draw_label_png:main',
                 'smarter_labelme_json_to_dataset=labelme.cli.json_to_dataset:main',
                 'smarter_labelme_video2frames=labelme.cli.video2frames:main',
+                'smarter_labelme_convert_fps=labelme.cli.convert_fps:main',
             ],
         },
     )

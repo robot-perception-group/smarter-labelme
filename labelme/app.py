@@ -30,7 +30,7 @@ from labelme.widgets import ToolBar
 from labelme.widgets import UniqueLabelQListWidget
 from labelme.widgets import ZoomWidget
 
-from labelme.trackerre3 import Tracker, trackerAutoAnnotate, trackerInit
+from labelme.trackerre3 import Tracker, trackerAutoAnnotate, trackerInit, trackerFindGlobalOffset
 
 here = osp.dirname(osp.abspath(__file__))
 # FIXME
@@ -91,9 +91,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._config['label_flags'] is None:
             self._config['label_flags']= {'.*':['disable_visual_tracking']}
         else:
-            for pattern,keys in self._config['label_flags'].items():
-                if not 'disable_visual_tracking' in keys:
-                    keys.append('disable_visual_tracking')
+            if not '.*' in self._config['label_flags']:
+                self._config['label_flags']['.*']=['disable_visual_tracking']
+            else:
+                for key in ['disable_visual_tracking',]:
+                    if not key in self._config['label_flags']['.*']:
+                        self._config['label_flags']['.*'].append(key)
 
         self.labelDialog = LabelDialog(
             parent=self,
@@ -1508,6 +1511,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     otrack_shapes.append(shape)
             if len(otrack_shapes):
                 track_shapes = self.track_shape(otrack_shapes)
+                trackerDetectFlags(self.image,track_shapes) 
                 self.loadShapes(track_shapes, replace=False)
                 self.setDirty()
             else:
@@ -1829,18 +1833,40 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def deleteSelectedShape(self):
         yes, no = QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No
+        selectedFiles = self.fileListWidget.selectedItems();
         msg = self.tr(
-            'You are about to permanently delete {} polygons, '
+            'You are about to permanently delete {} polygons in {} frames, '
             'proceed anyway?'
-        ).format(len(self.canvas.selectedShapes))
+        ).format(len(self.canvas.selectedShapes),len(selectedFiles))
         if yes == QtWidgets.QMessageBox.warning(
                 self, self.tr('Attention'), msg,
                 yes | no):
+            oldtext=[]
+            for shape in self.canvas.selectedShapes:
+                oldtext.append(shape.label)
             self.remLabels(self.canvas.deleteSelected())
             self.setDirty()
             if self.noShapes():
                 for action in self.actions.onShapesPresent:
                     action.setEnabled(False)
+            if len(selectedFiles)>1:
+                #more than one file is selected, we also need to change the label in all other files, if it exists
+                oldfilename=self.filename
+                for fileitem in selectedFiles[1:]:
+                    currIndex = self.imageList.index(str(fileitem.text()))
+                    if currIndex < len(self.imageList):
+                        filename = self.imageList[currIndex]
+                        if filename:
+                            self.loadFile(filename,reset=False)
+                            toRemove=[]
+                            for clabel in self.labelList:
+                                cshape=clabel.shape()
+                                if cshape.label in oldtext:
+                                    toRemove.append(cshape)
+                            if len(toRemove):
+                                self.remLabels(toRemove)
+                                self.setDirty()
+                self.loadFile(oldfilename,reset=False)
 
     def copyShape(self):
         self.canvas.endMove(copy=True)
@@ -2021,11 +2047,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for shape in self.canvas.selectedShapes:
             tracker = Tracker()
-            status = tracker.initTracker(image,shape)
-            if status:
-                self.tracker_dict[tracker.shape.label] = tracker
-            else:
-                logger.warning('failed to init tracker')
+            self.tracker_dict[shape.label] = tracker
 
         if len(self.tracker_dict) != len(self.canvas.selectedShapes):
             self.errorMessage('Tracker Error','Failed to initialize some trackers!')
@@ -2048,12 +2070,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         tracker_keys = self.tracker_dict.keys()
 
+        trackerFindGlobalOffset(self.previmage,primary)
+
         for shape in shapes:
             tid = shape.label
             if tid in tracker_keys:
                 tracker = self.tracker_dict[tid]
-                tracker.initTracker(self.previmage, shape)
-                tshape, status = tracker.updateTracker(primary, shape)
+                tracker.initTracker(shape)
+                tshape, status = tracker.updateTracker(shape)
                 if not status:
                     logger.warning('failed to reinitialize tracker for {}'.format(tid))
 
