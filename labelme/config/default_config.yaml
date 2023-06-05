@@ -96,4 +96,4 @@ ssd_min_resolution: 300
 ssdmodel: null
 store_data: false
 validate_label: null
-version: 5.2.1
+version: 5.2.2

@@ -1511,7 +1511,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     otrack_shapes.append(shape)
             if len(otrack_shapes):
                 track_shapes = self.track_shape(otrack_shapes)
-                trackerDetectFlags(self.image,track_shapes) 
                 self.loadShapes(track_shapes, replace=False)
                 self.setDirty()
             else:
