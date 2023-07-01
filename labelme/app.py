@@ -30,7 +30,7 @@ from labelme.widgets import ToolBar
 from labelme.widgets import UniqueLabelQListWidget
 from labelme.widgets import ZoomWidget
 
-from labelme.trackerre3 import Tracker, trackerAutoAnnotate, trackerInit, trackerFindGlobalOffset
+from labelme.trackerre3 import Tracker, trackerAutoAnnotate, trackerInit, trackerDetectFlags, trackerFindGlobalOffset
 
 here = osp.dirname(osp.abspath(__file__))
 # FIXME
@@ -89,12 +89,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Main widgets and related state.
         if self._config['label_flags'] is None:
-            self._config['label_flags']= {'.*':['disable_visual_tracking']}
+            self._config['label_flags']= {'.*':['disable_visual_tracking','auto_flag']}
         else:
             if not '.*' in self._config['label_flags']:
-                self._config['label_flags']['.*']=['disable_visual_tracking']
+                self._config['label_flags']['.*']=['disable_visual_tracking','auto_flag']
             else:
-                for key in ['disable_visual_tracking',]:
+                for key in ['disable_visual_tracking','auto_flag']:
                     if not key in self._config['label_flags']['.*']:
                         self._config['label_flags']['.*'].append(key)
 
@@ -1018,6 +1018,8 @@ class MainWindow(QtWidgets.QMainWindow):
             ntext = shape.label
         else:
             ntext = '{} ({})'.format(shape.label, shape.group_id)
+        if shape.flags['auto_flag']==True:
+            trackerDetectFlags(self.image,[shape])
         if shape.flags is not None:
             for key in shape.flags:
                 if shape.flags[key]:
@@ -1058,6 +1060,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                 #change this label in the other file
                                 cshape.label=text
                                 cshape.flags = flags
+                                if flags['auto_flag']==True:
+                                    trackerDetectFlags(self.image,[cshape])
                                 cshape.group_id = group_id
                                 self.setDirty()
             self.loadFile(oldfilename,reset=False)
@@ -1511,6 +1515,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     otrack_shapes.append(shape)
             if len(otrack_shapes):
                 track_shapes = self.track_shape(otrack_shapes)
+                trackerDetectFlags(self.image,track_shapes) 
                 self.loadShapes(track_shapes, replace=False)
                 self.setDirty()
             else:

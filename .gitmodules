@@ -1,0 +1,4 @@
+[submodule "submodules/NVIDIADeepLearningExamples"]
+	path = submodules/NVIDIADeepLearningExamples
+	url = https://github.com/NVIDIA/DeepLearningExamples.git
+	branch = torchhub
