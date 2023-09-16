@@ -8,9 +8,9 @@ def qtImg2CvMat(inImage):
     width = inImage.width()
     height = inImage.height()
 
-    ptr = inImage.bits()
+    ptr = inImage.constBits()
     ptr.setsize(inImage.byteCount())
-    mat = np.array(ptr).reshape(height, width, 3)  #  Shape the data
+    mat = np.array(ptr).reshape(height,inImage.bytesPerLine())[:,0:(width*3)].reshape(height, width, 3)  #  Shape the data
 
     rgb = cv2.cvtColor(mat, cv2.COLOR_BGR2RGB)
     #cv2.imwrite('tmp.png', rgb)
