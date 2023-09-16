@@ -19,13 +19,7 @@ from qtpy import QtCore
 MAX_TRACK_LENGTH = 16
 CROP_SIZE = 227
 CROP_PAD = 2
-TRACKSIZE=100
 SSDSIZE=300
-SSDCROPFACTOR=3.0
-SSDTHRESHOLD=0.05
-SSDAUTOTHRESHOLD=0.15
-SSDMINIOU=0.8
-SSDALPHA=0.8
 COCOCLASS=['background','person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
 SSDMULTIBOX=None
 DEVICE=None
@@ -137,10 +131,10 @@ class SSD():
         d=h
         if (w>h):
             d=w
-        x1=x0-d*SSDCROPFACTOR*0.5
-        x2=x0+d*SSDCROPFACTOR*0.5
-        y1=y0-d*SSDCROPFACTOR*0.5
-        y2=y0+d*SSDCROPFACTOR*0.5
+        x1=x0-d*float(CONFIG['ssd_track_crop_factor'])*0.5
+        x2=x0+d*float(CONFIG['ssd_track_crop_factor'])*0.5
+        y1=y0-d*float(CONFIG['ssd_track_crop_factor'])*0.5
+        y2=y0+d*float(CONFIG['ssd_track_crop_factor'])*0.5
         x1,y1,x2,y2 = [ (int(a) if a>=0 else 0) for a in [x1,y1,x2,y2]]
         x1,x2 = [ (a if a<=W-1 else W-1) for a in [x1,x2]]
         y1,y2 = [ (a if a<=H-1 else H-1) for a in [y1,y2]]
@@ -161,7 +155,7 @@ class SSD():
         overlapping = (ssdutils.calc_iou_tensor(bboxtensor,candidates)).view(-1)
         keep=torch.argmax(overlapping)
         logger.info(("best ssd box: %f :"%(overlapping[keep]))+str(candidates[keep]))
-        if (overlapping[keep]<SSDMINIOU):
+        if (overlapping[keep]<float(CONFIG['ssd_re3_correction_min_iou'])):
             logger.info("BOX is below threshold :( ")
             # ssd found nothing
             return None
@@ -424,12 +418,12 @@ class Re3Tracker(object):
             corrected_bbox=past_bbox
         else:
             corrected_bbox=past_bbox.reshape(2,2).astype(float)
-            corrected_bbox=TRACKSIZE*(corrected_bbox-TRANSROTATION[1])/TRANSROTATION[2]
+            corrected_bbox=int(CONFIG['global_translation_track_size'])*(corrected_bbox-TRANSROTATION[1])/TRANSROTATION[2]
             corrected_bbox=np.concatenate((corrected_bbox,np.array([[1.],[1.]])),axis=1)
             corrected_bbox=np.concatenate([ [np.dot(TRANSROTATION[0],point)] for point in corrected_bbox])
 
 
-            corrected_bbox=(corrected_bbox[:,[[0,1]]]*TRANSROTATION[2]/TRACKSIZE)+TRANSROTATION[1]
+            corrected_bbox=(corrected_bbox[:,[[0,1]]]*TRANSROTATION[2]/int(CONFIG['global_translation_track_size']))+TRANSROTATION[1]
             corrected_bbox=corrected_bbox.reshape(4).astype(int)
 
         cropped_input0, past_bbox_padded = im_util.get_cropped_input(prev_image, past_bbox, CROP_PAD, CROP_SIZE)
@@ -562,10 +556,10 @@ class Tracker():
             ssdbox=ssd1box
         else:
             logger.info("combining ssd boxes")
-            ssdbox=list(SSDALPHA*np.array(ssd1box)+(1.0-SSDALPHA)*np.array(ssd2box))
+            ssdbox=list(float(CONFIG['ssd_re3_correction_alpha'])*np.array(ssd1box)+(1.0-float(CONFIG['ssd_re3_correction_alpha']))*np.array(ssd2box))
         if ssdbox is not None:
             logger.info("merging with Re3")
-            pbox=list(SSDALPHA*np.array(ssdbox)+(1.0-SSDALPHA)*np.array(pbox))
+            pbox=list(float(CONFIG['ssd_re3_correction_alpha'])*np.array(ssdbox)+(1.0-float(CONFIG['ssd_re3_correction_alpha']))*np.array(pbox))
             logger.info("ssd fusion reported:"+str(pbox))
 
         logger.info("fixed shape:"+str(pbox))
@@ -624,16 +618,20 @@ def scale(image,dimensions):
 
 def trackerFindGlobalOffset(aqimg,qimg):
     global REFIMAGE,CURIMAGE,TRANSROTATION
+
     REFIMAGE = ocvutil.qtImg2CvMat(aqimg)
     CURIMAGE = ocvutil.qtImg2CvMat(qimg)
 
+    if (int(CONFIG['global_translation_track_size'])<=0):
+        TRANSROTATION=None
+        return
     w=REFIMAGE.shape[1]
     h=REFIMAGE.shape[0]
     size=min(h,w)
     center=(np.array([w,h],dtype=int)//2)
     lt=center-(size//2)
-    frame0r = cv2.cvtColor(cv2.resize(REFIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (TRACKSIZE,TRACKSIZE)),cv2.COLOR_BGR2GRAY)
-    frame1r = cv2.cvtColor(cv2.resize(CURIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (TRACKSIZE,TRACKSIZE)),cv2.COLOR_BGR2GRAY)
+    frame0r = cv2.cvtColor(cv2.resize(REFIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (int(CONFIG['global_translation_track_size']),int(CONFIG['global_translation_track_size']))),cv2.COLOR_BGR2GRAY)
+    frame1r = cv2.cvtColor(cv2.resize(CURIMAGE[lt[1]:lt[1]+size,lt[0]:lt[0]+size], (int(CONFIG['global_translation_track_size']),int(CONFIG['global_translation_track_size']))),cv2.COLOR_BGR2GRAY)
     warp_matrix = np.eye(2, 3, dtype=np.float32)
     TRANSROTATION=None
 
@@ -679,7 +677,7 @@ def trackerAutoAnnotate(qimg,shapes):
     for shape in shapes:
         rects.append(getRectForTracker(mimg,shape))
     newrects=SSDMULTIBOX.findnew(mimg,rects)[-1]
-    newrects=newrects[newrects[:,0,1]>SSDAUTOTHRESHOLD]
+    newrects=newrects[newrects[:,0,1]>float(CONFIG['ssd_threshold_autoannotation'])]
     id0=int(random.random()*100000)*1000
     id1=0
     newshapes=[]

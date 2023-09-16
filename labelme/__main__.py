@@ -119,6 +119,11 @@ def main():
         default=argparse.SUPPRESS,
     )
     parser.add_argument(
+        '--global-translation-track-size',
+        help='Size in pixel for downsampled frame when estimating global camera translation and rotation. Set to zero to disable the feature. Default: 100',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         '--ssdmodel',
         help='Filename for SSD multibox weights',
         default=argparse.SUPPRESS,
@@ -126,6 +131,26 @@ def main():
     parser.add_argument(
         '--ssd-min-resolution',
         help='Minimum resolution at which to auto annotate. Smaller values result in more memory usage and longer runtime but detect smaller objects. Default: 300',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--ssd-threshold-autoannotation',
+        help='Confidence threshold for auto annotation. Default: 0.15',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--ssd-track-crop-factor',
+        help='Region size around the tracked annotation in which to search for objects with SSD, relative to bounding box. Default: 3.0',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--ssd-re3-correction-alpha',
+        help='Weighting factor for SSD detection coordinates when drift correcting Re³. Default: 0.8',
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--ssd-re3-min-iou',
+        help='Minimum Jaccard-overlap (IOU) between tracked bounding box and highest confidence SSD detection to consider for Re³ drift correction. Default: 0.8',
         default=argparse.SUPPRESS,
     )
     parser.add_argument(

@@ -21,6 +21,7 @@ flag_dock:
   show: true
 flagmodel: null
 flags: null
+global_translation_track_size: 100
 image_skip: 15
 keep_prev: false
 keep_prev_scale: true
@@ -94,7 +95,11 @@ shortcuts:
 show_label_text_field: true
 sort_labels: true
 ssd_min_resolution: 300
+ssd_re3_correction_alpha: 0.8
+ssd_re3_correction_min_iou: 0.8
+ssd_threshold_autoannotation: 0.15
+ssd_track_crop_factor: 3.0
 ssdmodel: null
 store_data: false
 validate_label: null
-version: 5.2.7
+version: 5.2.8
