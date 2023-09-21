@@ -102,4 +102,4 @@ ssd_track_crop_factor: 3.0
 ssdmodel: null
 store_data: false
 validate_label: null
-version: 5.2.8
+version: 5.2.9

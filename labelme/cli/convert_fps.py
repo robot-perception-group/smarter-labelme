@@ -14,7 +14,7 @@ def main():
     parser.add_argument('dest_annotation_folder')
     parser.add_argument('--source_framerate','-sf',required=True,type=float,help="Framerate of the source annotations")
     parser.add_argument('--dest_framerate','-df',default=30000./1001,type=float,help="Resample to this framerate")
-    parser.add_argument('--dest_template',default='frame_%05d',help="Frame file name template for resulting annotations")
+    parser.add_argument('--dest_template',default='frame_%06d',help="Frame file name template for resulting annotations")
     parser.add_argument('--dest_image_type',default='.jpg',help="Image file name extension written in resulting annotation")
     args = parser.parse_args()
     if not os.path.isdir(args.source_annotation_folder):
