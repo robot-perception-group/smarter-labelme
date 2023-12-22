@@ -46,6 +46,7 @@ shift_auto_shape_color: 0
 shortcuts:
   add_point_to_edge: Ctrl+Shift+P
   autoAnnotate: null
+  startStopAutoMode: Ctrl+Space
   close: Ctrl+W
   create_autocontour: Ctrl+A
   create_circle: null
