@@ -1535,6 +1535,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 flags.update(self.labelFile.flags)
         self.loadFlags(flags)
 
+        if self.autoMode and self.tracker_dict and self._config['freeze_key_frames'] and len(self.canvas.shapes)>0:
+            #this frame has annotated labels - we treat it as a key frame and do not change it
+            self.stop_tracker()
+            selected_shapes=[]
+            for shape in self.canvas.shapes:
+                selected_shapes.append(shape)
+            self.canvas.selectShapes(selected_shapes)
+            self.start_tracker()
+
         if self.tracker_dict:
             otrack_shapes=[]
             for shape in prev_shapes:

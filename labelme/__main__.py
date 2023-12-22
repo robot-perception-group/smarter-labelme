@@ -175,6 +175,13 @@ def main():
         help='Run in auto mode with tracking enabled, then exit',
         default=argparse.SUPPRESS,
     )
+    parser.add_argument(
+        '--freezekeyframes',
+        dest='freeze_key_frames',
+        action='store_true',
+        help='When auto-tracking, do not change already annotated frames, instead re-init tracker dictionary',
+        default=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
 
     if args.version:

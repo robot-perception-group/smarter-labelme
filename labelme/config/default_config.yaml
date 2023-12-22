@@ -22,6 +22,7 @@ flag_dock:
   show: true
 flagmodel: null
 flags: null
+freeze_key_frames: false
 global_translation_track_size: 100
 image_skip: 1
 keep_prev: false
