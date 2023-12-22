@@ -1,4 +1,5 @@
 auto_save: true
+auto_run: false
 canvas:
   double_click: null
 default_shape_color: null
@@ -22,7 +23,7 @@ flag_dock:
 flagmodel: null
 flags: null
 global_translation_track_size: 100
-image_skip: 15
+image_skip: 1
 keep_prev: false
 keep_prev_scale: true
 label_colors: null
@@ -103,4 +104,4 @@ ssd_track_crop_factor: 3.0
 ssdmodel: null
 store_data: false
 validate_label: null
-version: 5.2.9
+version: 5.2.10

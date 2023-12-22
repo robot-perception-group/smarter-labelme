@@ -755,6 +755,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.firstStart = True
         # if self.firstStart:
         #    QWhatsThis.enterWhatsThisMode()
+        if self._config['auto_run']:
+            self.queueEvent(functools.partial(self.autoRun))
 
     def menu(self, title, actions=None):
         menu = self.menuBar().addMenu(title)
@@ -2142,6 +2144,22 @@ class MainWindow(QtWidgets.QMainWindow):
             if len(self.imageList) <= 0 or self.filename == self.imageList[-1]:
                 self.autoMode = False
                 self.actions.startStopAutoMode.setChecked(False)
+                if self._config['auto_run']:
+                      self.queueEvent(functools.partial(self.autoRunFin))
+
             else:
                 self._openNextImg(skip=self.image_skip)
                 self.queueEvent(functools.partial(self.autoStep))
+
+    def autoRun(self):
+        selected_shapes=[]
+        for shape in self.canvas.shapes:
+            selected_shapes.append(shape)
+        if selected_shapes:
+           self.canvas.selectShapes(selected_shapes)
+           self.actions.toggle_tracker.toggle()
+           self.start_tracker()
+           self.startStopAutoMode()
+
+    def autoRunFin(self):
+        self.close()

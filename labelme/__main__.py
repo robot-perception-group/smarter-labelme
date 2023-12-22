@@ -168,6 +168,13 @@ def main():
         help='Device to run Deep Neural Networks on - cpu or cuda',
         default=argparse.SUPPRESS,
     )
+    parser.add_argument(
+        '--autorun',
+        dest='auto_run',
+        action='store_true',
+        help='Run in auto mode with tracking enabled, then exit',
+        default=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
 
     if args.version:
