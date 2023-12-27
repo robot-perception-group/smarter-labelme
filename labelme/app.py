@@ -756,6 +756,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # if self.firstStart:
         #    QWhatsThis.enterWhatsThisMode()
         if self._config['auto_run']:
+            logger.info('Auto Run Engaged')
             self.queueEvent(functools.partial(self.autoRun))
 
     def menu(self, title, actions=None):
@@ -1538,6 +1539,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.autoMode and self.tracker_dict and self._config['freeze_key_frames'] and len(self.canvas.shapes)>0:
             #this frame has annotated labels - we treat it as a key frame and do not change it
             self.stop_tracker()
+        if self.autoMode and self._config['freeze_key_frames'] and len(self.canvas.shapes)>0:
+            logger.info('Auto Run encountered keyframe %s'%self.filename)
             selected_shapes=[]
             for shape in self.canvas.shapes:
                 selected_shapes.append(shape)
@@ -2138,11 +2141,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.autoMode:
             self.actions.startStopAutoMode.setChecked(False)
             self.autoMode = False
+            logger.info('Auto Run Stopped')
         else:
             if not self.mayContinue():
                 return
             self.actions.startStopAutoMode.setChecked(True)
             self.autoMode = True
+            logger.info('Auto Run Started')
             self.queueEvent(functools.partial(self.autoStep))
 
     def stepsizeChanged(self):
@@ -2157,6 +2162,7 @@ class MainWindow(QtWidgets.QMainWindow):
                       self.queueEvent(functools.partial(self.autoRunFin))
 
             else:
+                logger.info('Auto Run: %s'%self.filename)
                 self._openNextImg(skip=self.image_skip)
                 self.queueEvent(functools.partial(self.autoStep))
 
@@ -2164,11 +2170,11 @@ class MainWindow(QtWidgets.QMainWindow):
         selected_shapes=[]
         for shape in self.canvas.shapes:
             selected_shapes.append(shape)
-        if selected_shapes:
+        if len(selected_shapes):
            self.canvas.selectShapes(selected_shapes)
            self.actions.toggle_tracker.toggle()
            self.start_tracker()
-           self.startStopAutoMode()
+        self.startStopAutoMode()
 
     def autoRunFin(self):
         self.close()

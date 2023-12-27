@@ -1,5 +1,5 @@
-auto_save: true
 auto_run: false
+auto_save: true
 canvas:
   double_click: null
 default_shape_color: null
@@ -48,7 +48,6 @@ shift_auto_shape_color: 0
 shortcuts:
   add_point_to_edge: Ctrl+Shift+P
   autoAnnotate: null
-  startStopAutoMode: Ctrl+Space
   close: Ctrl+W
   create_autocontour: Ctrl+A
   create_circle: null
@@ -83,6 +82,7 @@ shortcuts:
   save: Ctrl+S
   save_as: Ctrl+Shift+S
   save_to: null
+  startStopAutoMode: Ctrl+Space
   toggle_keep_prev_mode: null
   toggle_tracker:
   - Ctrl+T
