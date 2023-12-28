@@ -145,11 +145,13 @@ def main():
     )
     parser.add_argument(
         '--ssd-re3-correction-alpha',
+        dest='ssd_re3_correction_alpha',
         help='Weighting factor for SSD detection coordinates when drift correcting Re³. Default: 0.8',
         default=argparse.SUPPRESS,
     )
     parser.add_argument(
         '--ssd-re3-min-iou',
+        dest='ssd_re3_correction_min_iou',
         help='Minimum Jaccard-overlap (IOU) between tracked bounding box and highest confidence SSD detection to consider for Re³ drift correction. Default: 0.8',
         default=argparse.SUPPRESS,
     )
