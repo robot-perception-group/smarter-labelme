@@ -116,6 +116,7 @@ year="2024",
 publisher="Springer Nature Switzerland",
 address="Cham",
 pages="141--153",
+doi = {10.1007/978-3-031-44981-9_12},
 isbn="978-3-031-44981-9"
 }
 ```
