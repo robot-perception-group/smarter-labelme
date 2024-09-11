@@ -106,14 +106,17 @@ This repo is the fork of [bhavyaajani/smart-labelme](https://github.com/bhavyaaj
 If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entries.
 
 ```bash
-@misc{price2023accelerated,
-      title={Accelerated Video Annotation driven by Deep Detector and Tracker}, 
-      author={Eric Price and Aamir Ahmad},
-      year={2023},
-      eprint={2302.09590},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url = {https://arxiv.org/abs/2302.09590},
+@InProceedings{10.1007/978-3-031-44981-9_12,
+author="Price, Eric
+and Ahmad, Aamir",
+editor="Lee, Soon-Geul et al.",
+title="Accelerated Video Annotation Driven by Deep Detector and Tracker",
+booktitle="Intelligent Autonomous Systems 18",
+year="2024",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="141--153",
+isbn="978-3-031-44981-9"
 }
 ```
 ```bash
