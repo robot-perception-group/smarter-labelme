@@ -250,7 +250,7 @@ class Shape(object):
         tpoints=[]
         for p in self.points:
             tp = np.dot(T , [p.x(),p.y(), 1])
-            qp = QtCore.QPoint(tp[0],tp[1])
+            qp = QtCore.QPointF(tp[0],tp[1])
             tpoints.append(qp)
             
         self.points = tpoints

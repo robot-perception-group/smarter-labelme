@@ -48,9 +48,9 @@ class HTMLDelegate(QtWidgets.QStyledItemDelegate):
         if index.column() != 0:
             textRect.adjust(5, 0, 0, 0)
 
-        thefuckyourshitup_constant = 4
+        weird_constant = 4
         margin = (option.rect.height() - options.fontMetrics.height()) // 2
-        margin = margin - thefuckyourshitup_constant
+        margin = margin - weird_constant
         textRect.setTop(textRect.top() + margin)
 
         painter.translate(textRect.topLeft())
@@ -60,10 +60,10 @@ class HTMLDelegate(QtWidgets.QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
-        thefuckyourshitup_constant = 4
+        weird_constant = 4
         return QtCore.QSize(
-            self.doc.idealWidth(),
-            self.doc.size().height() - thefuckyourshitup_constant,
+            int(self.doc.idealWidth()),
+            int(self.doc.size().height() - weird_constant),
         )
 
 
