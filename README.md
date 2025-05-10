@@ -68,6 +68,23 @@ The annotations are saved as a [JSON](http://www.json.org/) file.
 ```bash
 smarter_labelme  # just open gui
 ```
+
+### Known Installation Issues.
+
+Due to a version mismatch between OpenCV and system Qt libraries, on some system the following error might occur when attempting to run smarter-labelme:
+
+```
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in ".../site-packages/cv2/qt/plugins" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+```
+
+If this happens, you can run the following commands to remove the conflicting opencv qt libraries:
+
+```
+python3 -m pip uninstall opencv-python
+python3 -m pip install --upgrade opencv-python-headless
+```
+
 ### Neural Network weights.
 
 Smarter-labelme will automatically download pretrained network weights via torch.hub on the first start. They will be cashed in your local user directory and use approximately 200 Mb of space. You can use your own weights instead with the --ssdmodel and --re3model flags.
